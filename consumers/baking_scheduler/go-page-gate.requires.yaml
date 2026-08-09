@@ -64,13 +64,15 @@ needs:
       and `\if` meta-commands.
     status_when_measured: present
     how: "psql (PostgreSQL) 12.22 at /usr/bin/psql (run 31270809170)"
-    # ⚠️ THE ONE OPEN ITEM, AND IT IS DELIBERATELY NOT EXPRESSED AS `min_version`.
-    # The image carries a v12 client; the server is PG16. That is client/server skew the hosted
-    # runner never had. We have NOT tested our migration set through a v12 client, so asserting
-    # `min_version: "16"` would be exactly the unverified confident claim this repo exists to stop
-    # (R1). It is recorded as an open question instead of a requirement.
-    # See: docs/questions/psql-client-version.md
-    open_question: docs/questions/psql-client-version.md
+    # ✅ RESOLVED 2026-08-09 — still deliberately NO `min_version`, and now for a better reason.
+    # The question was "is v12 too old?"; the answer was that the major was never CHOSEN —
+    # `Dockerfile:65` installed `postgresql-client` unversioned on top of a digest-pinned base.
+    # `postgresql-client-16` and a declared server major now land in one delivery, so the pair is
+    # chosen rather than inherited. TRIGGER: write `min_version` once that lands, to the version we
+    # actually get — true because it was declared, not because it happened to work. Asserting one
+    # before then would be the unverified claim this repo exists to stop (R1).
+    # See: docs/questions/psql-client-version.md (ANSWERED)
+    #      docs/decisions/0011-identity-is-only-as-declared-as-its-least-declared-layer.md
 
   - id: pkg.sharp-prebuilt
     why: "The rendition step runs `npm install` and encodes AVIF/WebP; sharp is a native module."
