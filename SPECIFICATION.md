@@ -92,13 +92,20 @@ forbids:
 
 Reads one `provides` and one or more `requires`, and emits a table plus an exit code.
 
-| outcome | meaning | exit |
-|---|---|---|
-| `PASS` | required, present, and any version constraint satisfied | 0 |
-| `FAIL` | required and absent, or present at an unsatisfying version | non-zero |
-| `SKIP` | **could not be determined** | non-zero (see R3) |
+| outcome | meaning | owner of the next action | exit |
+|---|---|---|---|
+| `PASS` | required, present, any version constraint satisfied | — | 0 |
+| `FAIL` | required, and a probe **measured it absent** (`present: false`), or present at an unsatisfying version | the host / image owner | non-zero |
+| `SKIP` | **could not be determined** — the probe returned could-not-determine, **or no probe answered this id at all**, or a version comparison was not possible, or the `provides` is expired, or host selection was ambiguous | the probe-set maintainer, or the operator | non-zero (see R3) |
 
-A run with any `FAIL` or any `SKIP` is a failing run.
+A run with any `FAIL` or any `SKIP` is a failing run. **Both block; they differ only in who is being
+asked to act** — which is the whole content of R5. Reporting `FAIL` for a capability nobody measured
+sends an actionable-looking request to someone who cannot act on it, and that is a `WHY.md` exchange
+manufactured by the tool built to end them. See
+[`0008`](docs/decisions/0008-unprobed-is-skip-not-fail.md).
+
+`present: false` is therefore a **positive measurement of absence**, never a default. A probe that
+cannot determine presence emits could-not-determine, not `present: false`.
 
 ---
 
@@ -213,13 +220,27 @@ marks it `deliberate: true`.
 Recorded here rather than settled, so contributors can see what is genuinely undecided. Each becomes
 a decision record in [`docs/decisions/`](docs/decisions/) when resolved.
 
-1. **Version comparison semantics.** `min_version: "16"` against a measured `"12.22"` is
-   unambiguous; arbitrary vendor version strings are not. Restrict to semver-ish, or allow a
-   declared comparator per capability?
-2. **Staleness policy.** Should `hutch check` reject a `provides` older than N, and is N the
-   consumer's choice or the publisher's?
-3. **Multiple hosts.** A repo whose lanes run on several hosts needs the checker to select the right
-   `provides`. By label? By explicit reference in `requires`?
-4. **Probe distribution.** The probe must run on the host, but the capability ids it answers are
-   shared. How is a probe extended for a host-specific capability without forking it — which is the
-   duplication this whole effort exists to prevent?
+All four have a **proposed** decision record from the voicegent side, awaiting the maintainer's
+ruling. Proposed is not accepted; the records argue a position and name what it costs.
+
+1. **Version comparison semantics.** → [`0004`](docs/decisions/0004-version-comparison.md): the probe
+   declares `version_scheme`, `opaque` is ordinary rather than an escape hatch, and an incomparable
+   pair is `SKIP`. Restricting the spec to semver-ish removes the vocabulary for saying "not
+   orderable" without removing the strings from the world, which forces a lenient parse — a wrong
+   answer that is green.
+2. **Staleness policy.** → [`0005`](docs/decisions/0005-staleness.md): the publisher declares
+   `valid_for`, the consumer declares `max_provides_age`, the stricter wins, and expiry is `SKIP`
+   rather than `FAIL`. Falls out of R4 — a document identified by `image_digest` describes an
+   immutable artifact and cannot go stale the way a hostname-identified one can.
+3. **Multiple hosts.** → [`0006`](docs/decisions/0006-multi-host-selection.md): derive the host from
+   the lane's own `runs-on`; a `requires` never names its host. §4 already put allocation out of
+   scope, so `hutch` must read that binding rather than ask for a second copy that can drift.
+4. **Probe distribution.** → [`0007`](docs/decisions/0007-probe-extension.md): a probe is a directory
+   of single-capability answerers unioned from a shared root and a host-local root, so the
+   host-specific case never edits the shared file. Includes a **yes** on rehoming
+   `fleet-image-probe.sh` here, with one condition.
+
+**A fifth, found while answering the fourth and not while looking for defects:**
+→ [`0008`](docs/decisions/0008-unprobed-is-skip-not-fail.md) — §1.3 did not say which outcome applies
+when a required capability appears in no `provides` entry at all, and the literal reading yields
+`FAIL`. §1.3 above is amended; the record carries the reasoning.
