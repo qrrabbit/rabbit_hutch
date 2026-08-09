@@ -1,0 +1,93 @@
+# OutBaking / baking_scheduler — the `go-page-gate` lane.
+#
+# THE FIRST REAL `requires` DOCUMENT. Every entry below is a MEASUREMENT, not a wish: each `how`
+# names where the fact came from. The absent ones were measured absent on a real fleet replica
+# (`vgr-sasha-ubuntu--baking-scheduler-02`, run 31270809170) — PASS=8 FAIL=2 SKIP=4, exit 1.
+#
+# ⚠️ LOCATION IS TEMPORARY AND DELIBERATE. SPECIFICATION.md §1.2 says a `requires` document is
+# declared by the CONSUMING repository, and this one belongs in `baking_scheduler/.github/ci/`.
+# It is staged here because no `hutch check` implementation exists yet, so nothing in that repo
+# would read it, and the voicegent CI work in flight needs these requirements NOW rather than as
+# prose in a message. It moves to the consuming repo in the same delivery that wires the checker.
+# One copy exists at any time — a second would be the duplication this repo was created to prevent.
+#
+# Per 0006 this document does NOT name its host: the binding is derived from the lane's own
+# `runs-on`. Per 0004 `version_scheme` is the probe's to declare, never the consumer's.
+
+hutch: 1
+kind: requires
+
+lane: go-page-gate
+repo: qrrabbit/baking_scheduler
+
+# This lane applies a full migration set under a privilege claim before it measures anything, which
+# is 0005's own example of a case that does not tolerate an old document.
+max_provides_age: 24h
+
+needs:
+  - id: svc.postgres
+    why: >-
+      Every page this gate measures is served from a database built by the tracked migration set.
+      The gate builds a scratch database per run; it does not reuse one.
+    status_when_measured: present
+    how: "pg_isready accepted the connection at host.containers.internal:5432 (run 31270809170)"
+
+  - id: priv.postgres-superuser-on-ci-owned-instance
+    why: >-
+      Migration 022 runs `ALTER FUNCTION storefront.record_contact_subscriber(...) OWNER TO
+      ob_subscriber_writer`. PostgreSQL requires the new owner to hold CREATE on the schema, and only
+      a superuser bypasses that check, so LOGIN+CREATEDB+CREATEROLE reaches 022 and dies there.
+      Production applies migrations as the `postgres` superuser via peer auth
+      (`website/scripts/migrate.sh:31,54`), so a non-superuser CI role would also be SKEW — the gate
+      would prove a path production never takes.
+    # Per SPECIFICATION.md §3.1 a privilege may only be required where the host marks it
+    # `deliberate: true`. That is exactly the CI-owned instance: superuser is legitimate there
+    # BECAUSE the instance holds nothing but ephemeral synthetic CI databases.
+    requires_deliberate: true
+    status_when_measured: unmeasured
+    how: "SKIP — no OB CI credentials exist yet (PGUSER unset). The probe deliberately does not guess logins against the operator's machine."
+
+  - id: lib.chromium-shared
+    why: >-
+      This lane launches a browser TWICE — the Playwright geometry probe and the Lighthouse gate.
+      `playwright install chromium` succeeds on its own; it is the shared libraries that are missing.
+    status_when_measured: absent
+    how: >-
+      LAUNCH_FAIL: browserType.launch — "Host system is missing dependencies to run browsers"
+      (run 31270809170). Ask: bake `libnss3 libnspr4 libasound2` + deps into the image.
+      NOT `--with-deps`: that is an apt path that mutates the container, and `--rm` discards it
+      on the next job anyway.
+
+  - id: pkg.postgresql-client
+    why: >-
+      `seed-storefront-db.sh` applies every migration through `psql`, including `psql -v` variables
+      and `\if` meta-commands.
+    status_when_measured: present
+    how: "psql (PostgreSQL) 12.22 at /usr/bin/psql (run 31270809170)"
+    # ⚠️ THE ONE OPEN ITEM, AND IT IS DELIBERATELY NOT EXPRESSED AS `min_version`.
+    # The image carries a v12 client; the server is PG16. That is client/server skew the hosted
+    # runner never had. We have NOT tested our migration set through a v12 client, so asserting
+    # `min_version: "16"` would be exactly the unverified confident claim this repo exists to stop
+    # (R1). It is recorded as an open question instead of a requirement.
+    # See: docs/questions/psql-client-version.md
+    open_question: docs/questions/psql-client-version.md
+
+  - id: pkg.sharp-prebuilt
+    why: "The rendition step runs `npm install` and encodes AVIF/WebP; sharp is a native module."
+    status_when_measured: present
+    how: "loaded sharp 0.35.3 / libvips 8.18.3 (run 31270809170)"
+
+forbids:
+  - id: runtime.docker-socket
+    why: >-
+      This lane previously used a `services: postgres:16` container and no longer does. Declared as
+      forbidden so that a host which happens to expose a socket is never silently relied upon again,
+      and so the removal cannot quietly regress.
+
+  - id: priv.passwordless-sudo
+    why: >-
+      Measured PRESENT on the fleet image and deliberately NOT used. The host's documented model is
+      that the runner user's unprivilege is the security boundary; it is not, and the owner's stated
+      fix is to remove the sudo. A capability you discover but were not granted is not a capability —
+      it is a defect in someone else's system, and depending on it converts their fix into your
+      outage. Declared forbidden so no future change to this lane can start depending on it.
