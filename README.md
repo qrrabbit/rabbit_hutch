@@ -58,4 +58,13 @@ extracted from two independent consumers has already survived the only test that
 
 ## License
 
-Not yet chosen — see [`docs/decisions/0002-license.md`](docs/decisions/0002-license.md).
+**AGPL-3.0** — see [`LICENSE`](LICENSE).
+
+Copyright © 2026 qrrabbit. All rights reserved under the terms of the AGPL-3.0.
+
+Use it, modify it, run it in your company — freely. If you distribute a modified version, **or offer
+one as a network service**, you must publish your source under the same licence. In short: this
+cannot be taken proprietary.
+
+Want it on other terms? The copyright holder retains the right to license it commercially — open an
+issue. Reasoning in [`docs/decisions/0002-license.md`](docs/decisions/0002-license.md).

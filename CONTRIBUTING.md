@@ -51,3 +51,16 @@ probe command that measures it and an example of the `provides` entry it should 
 
 Early. If a process rule here is getting in the way of a good contribution, say so — the rule is
 probably wrong.
+
+## Licensing of contributions
+
+This project is **AGPL-3.0** ([`LICENSE`](LICENSE)). Contributions are accepted under the same terms.
+
+⚠️ **The contributor-agreement question is currently OPEN** — see
+[`docs/decisions/0003-contributor-agreement.md`](docs/decisions/0003-contributor-agreement.md). Until
+it is settled, pull requests from outside the copyright holder's own projects are not being merged.
+This is not a judgement on any contribution; it is that merging one before the question is answered
+would permanently foreclose an option, silently, and that is a bad way to decide anything.
+
+If you have something worth contributing in the meantime, please open an **issue** — the ideas are
+welcome now, the merge waits on the decision.
