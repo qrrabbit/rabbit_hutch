@@ -1,6 +1,6 @@
 # 0005 — Staleness: the publisher declares a lifetime, the consumer declares a tolerance, the stricter wins
 
-- **Status:** proposed
+- **Status:** accepted (ratified 2026-08-09, see [`0010`](0010-ratification-of-0004-0009.md))
 - **Date:** 2026-08-09
 - **Resolves:** SPECIFICATION.md §5 question 2
 - **Proposed by:** the voicegent architect

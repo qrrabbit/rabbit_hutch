@@ -1,6 +1,6 @@
 # 0008 — A required capability that no probe answers is SKIP, not FAIL — R3 has a hole
 
-- **Status:** proposed
+- **Status:** accepted (ratified 2026-08-09, see [`0010`](0010-ratification-of-0004-0009.md))
 - **Date:** 2026-08-09
 - **Amends:** SPECIFICATION.md §1.3
 - **Proposed by:** the voicegent architect

@@ -1,6 +1,6 @@
 # 0007 — Probe extension: a probe is a directory of single-capability answerers, not a script to fork
 
-- **Status:** proposed
+- **Status:** accepted (ratified 2026-08-09, see [`0010`](0010-ratification-of-0004-0009.md))
 - **Date:** 2026-08-09
 - **Resolves:** SPECIFICATION.md §5 question 4
 - **Proposed by:** the voicegent architect

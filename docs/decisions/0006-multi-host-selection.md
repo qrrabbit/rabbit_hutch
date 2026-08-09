@@ -1,6 +1,6 @@
 # 0006 — Multi-host selection: derive the host from the lane's own `runs-on`, never restate it
 
-- **Status:** proposed
+- **Status:** accepted (ratified 2026-08-09, see [`0010`](0010-ratification-of-0004-0009.md))
 - **Date:** 2026-08-09
 - **Resolves:** SPECIFICATION.md §5 question 3
 - **Proposed by:** the voicegent architect

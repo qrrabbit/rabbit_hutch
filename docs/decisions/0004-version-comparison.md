@@ -1,6 +1,6 @@
 # 0004 — Version comparison: the probe declares the scheme, and an incomparable pair SKIPs
 
-- **Status:** proposed
+- **Status:** accepted (ratified 2026-08-09, see [`0010`](0010-ratification-of-0004-0009.md))
 - **Date:** 2026-08-09
 - **Resolves:** SPECIFICATION.md §5 question 1
 - **Proposed by:** the voicegent architect (same owner; see CONTRIBUTING.md)
